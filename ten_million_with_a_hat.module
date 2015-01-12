@@ -91,7 +91,7 @@ function ten_million_with_a_hat_get_collection_pid_array() {
   $pids = array();
   foreach ($collections as $collection) {
     $pids[$collection['pid']] = array();
-    $loaded_collection = islandora_object_load($collection['pid'];
+    $loaded_collection = islandora_object_load($collection['pid']);
     if (!isset($loaded_collection['COLLECTION_POLICY'])) {
       unset($pids[$collection['pid']]);
     }
