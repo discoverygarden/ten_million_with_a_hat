@@ -47,6 +47,7 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
   }
   if (!empty($sandbox['collections'])) {
     $collection = islandora_object_load(ten_million_with_a_hat_get_random_array_member(array_keys($sandbox['collections'])));
+    $model = ten_million_with_a_hat_get_random_array_member($sandbox['collections'][$collection->id]); 
     // Let's make an object wheeeee.
     $tuque = islandora_get_tuque_connection();
     $object = $tuque->repository->constructObject('islandora');
