@@ -45,13 +45,13 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
     $sandbox['total'] = $objects;
     $sandbox['collections'] = ten_million_with_a_hat_get_collection_pid_array();
   }
-  $collection = islandora_object_load(ten_million_with_a_hat_get_random_collection($sandbox['collections']));
+  $collection = islandora_object_load(ten_million_with_a_hat_get_random_array_member(array_keys($sandbox['collections'])));
   // If this collection has no policy, it gets the boot.
   if (!isset($collection['COLLECTION_POLICY'])) {
     unset($sandbox['collections'][$collection->id]);
   }
   else {
-    $model = ten_million_with_a_hat_get_random_content_model($collection->id);
+    $model = ten_million_with_a_hat_get_random_array_member($sandbox['collections'][$collection->id]);
     // If we encountered an issue loading the COLLECTION_POLICY for this module
     // then it gets the boot as well.
     if (!model) {
@@ -87,16 +87,15 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
 }
 
 /**
- * Raaaaandom collections!
+ * Raaaaandom!
  *
- * @param array $collections
- *   The return value of ten_million_with_a_hat_get_collection_pid_array().
- * @return AbstractObject|bool
- *   A loaded collection, or FALSE on failure.
+ * @param array $array
+ *   An array wheeeee.
+ * @return string
+ *   A random member of the string
  */
-function ten_million_with_a_hat_get_random_collection($collections) {
-  $collections = array_keys($collections);
-  return $collections[mt_rand(0, count($collections) - 1)];
+function ten_million_with_a_hat_get_random_array_member($array) {
+  return $array[mt_rand(0, count($array) - 1)];
 }
 
 /**
@@ -126,20 +125,19 @@ function ten_million_with_a_hat_get_collection_pid_array() {
 }
 
 /**
- * Gets a random content model from the collection policy.
+ * Gets the content models from the collection policy.
  *
  * @param AbstractObject $collection
  *   The collection to get the policy from.
  * @return string|bool
  *   A random content model PID, or FALSE on failure.
  */
-function ten_million_with_a_hat_get_random_content_model(AbstractObject $collection) {
+function ten_million_with_a_hat_get_content_models(AbstractObject $collection) {
   try {
     $policy = new CollectionPolicy($collection['COLLECTION_POLICY']->content);
   }
   catch (Exception $e) {
     return FALSE;
   }
-  $models = array_keys($policy->getContentModels());
-  return $models[mt_rand(0, count($models) - 1)];
+  return array_keys($policy->getContentModels());
 }
