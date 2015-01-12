@@ -57,6 +57,7 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
     $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
     $sandbox['completed']++;
     $context['message'] = "Ingested {$object->id} into {$collection->id} ({$sandbox['completed']}/{$sandbox['total']})";
+    $context['finished'] = $sandbox['completed'] / $sandbox['total'];
   }
 
   // Handle the case where your repository is so messed up that there are no
@@ -64,9 +65,6 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
   else {
     $context['message'] = "For some reason, no valid collections with policies were found in your repository, so we can't really do anything.";
     $context['finished'] = 1;
-  }
-  else {
-    $context['finished'] = $sandbox['completed'] / $sandbox['total'];
   }
 }
 
