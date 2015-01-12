@@ -101,8 +101,12 @@ function ten_million_with_a_hat_get_collection_pid_array() {
       if ($models) {
         $pids[$collection['pid']] = $models;
         // We don't want to be creating new collections, so get rid of this.
-        if (isset($pids[$collection['pid']]['islandora:collectionCModel'])) {
-          unset($pids[$collection['pid']]['islandora:collectionCModel']);
+        $collection_cmodel = array_search('islandora:collectionCModel', $pids[$collection'pid']);
+        if ($collection_cmodel !== FALSE) {
+          unset($pids[$collection['pid']][$collection_cmodel]);
+        }
+        if (empty($pids[$collection['pid']])) {
+          unset($pids[$collection['pid']]);
         }
       }
       else {
