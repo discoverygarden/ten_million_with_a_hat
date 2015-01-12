@@ -45,40 +45,24 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
     $sandbox['total'] = $objects;
     $sandbox['collections'] = ten_million_with_a_hat_get_collection_pid_array();
   }
-  $collection = islandora_object_load(ten_million_with_a_hat_get_random_array_member(array_keys($sandbox['collections'])));
-  // If this collection has no policy, it gets the boot.
-  if (!isset($collection['COLLECTION_POLICY'])) {
-    unset($sandbox['collections'][$collection->id]);
-  }
-  else {
-    $model = ten_million_with_a_hat_get_random_array_member($sandbox['collections'][$collection->id]);
-    // If we encountered an issue loading the COLLECTION_POLICY for this module
-    // then it gets the boot as well.
-    if (!model) {
-      unset($sandbox['collections'][$collection->id]);
-    }
-    else {
-      // Let's make an object wheeeee.
-      $tuque = islandora_get_tuque_connection();
-      $object = $tuque->repository->constructObject('islandora');
-      $object->label = DrupalTestCase::randomName();
-      $object->owner = $user->name;
-      $object->models = (array) $model;
-      $tuque->repository->ingestObject($object);
-      $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
-    }
-  }
-  $sandbox['completed']++;
-  // Messages based on how things went.
-  if ($object) {
+  if (!empty($sandbox['collections'])) {
+    $collection = islandora_object_load(ten_million_with_a_hat_get_random_array_member(array_keys($sandbox['collections'])));
+    // Let's make an object wheeeee.
+    $tuque = islandora_get_tuque_connection();
+    $object = $tuque->repository->constructObject('islandora');
+    $object->label = DrupalTestCase::randomName();
+    $object->owner = $user->name;
+    $object->models = (array) $model;
+    $tuque->repository->ingestObject($object);
+    $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
+    $sandbox['completed']++;
     $context['message'] = "Ingested {$object->id} into {$collection->id} ({$sandbox['completed']}/{$sandbox['total']})";
   }
-  else {
-    $context['message'] = "Something went wrong loading the collection policy for {$collection->label} ({$collection->id}), so the collection has been removed from the randomizer.";
-  }
+
   // Handle the case where your repository is so messed up that there are no
   // collections or policies.
-  if (empty($sandbox['collections'])) {
+  else {
+    $context['message'] = "For some reason, no valid collections with policies were found in your repository, so we can't really do anything.";
     $context['finished'] = 1;
   }
   else {
