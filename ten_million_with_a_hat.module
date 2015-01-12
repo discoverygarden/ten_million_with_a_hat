@@ -71,7 +71,7 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
   $sandbox['completed']++;
   // Messages based on how things went.
   if ($object) {
-    $context['message'] = "Ingested {$object->id} ({$sandbox['completed']} out of {$sandbox['total']})";
+    $context['message'] = "Ingested {$object->id} into {$collection->id} ({$sandbox['completed']}/{$sandbox['total']})";
   }
   else {
     $context['message'] = "Something went wrong loading the collection policy for {$collection->label} ({$collection->id}), so the collection has been removed from the randomizer.";
