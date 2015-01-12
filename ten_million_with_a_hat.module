@@ -56,7 +56,7 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
     $tuque->repository->ingestObject($object);
     $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
     $sandbox['completed']++;
-    $context['message'] = "Ingested {$object->id} into {$collection->id} ({$sandbox['completed']}/{$sandbox['total']})";
+    $context['message'] = "{$sandbox['completed']}/{$sandbox['total']}: Ingested {$object->id} into {$collection->id} with model $model.";
     $context['finished'] = $sandbox['completed'] / $sandbox['total'];
   }
 
