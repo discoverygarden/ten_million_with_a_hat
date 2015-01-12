@@ -9,5 +9,27 @@
  * Implements hook_drush_command().
  */
 function ten_million_with_a_hat_drush_command() {
-  return array();
+  return array(
+    'ten-million-with-a-hat-ingest' => array(
+      'aliases' => array('tmhi'),
+      'description' => dt('Randomly generates n objects based on the existing collections in your repository.'),
+      'examples' => array('drush -u 1 ten-million-with-a-hat --n=10000000'),
+      'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
+      'drupal dependencies' => array(
+        'islandora',
+        'islandora_basic_collection',
+      ),
+      'options' => array(
+        'n' => array(
+          'description' => dt('The number of objects to create.'),
+          'required' => TRUE,
+        ),
+      ),
+    ),
+  );
+}
+
+function drush_ten_million_with_a_hat_ingest() {
+  batch_set(ten_million_with_a_hat_ingest_batch(drush_get_option('n')));
+  drush_backend_batch_process();
 }

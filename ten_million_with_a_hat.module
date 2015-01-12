@@ -2,5 +2,144 @@
 
 /**
  * @file
- * To be a module.
+ * 🔟Ⓜ️ w/ 🎩.
  */
+
+/**
+ * Does the thing with the stuff.
+ *
+ * @param int $objects
+ *   How many things we wanna do stuff with.
+ * @return array
+ *   The batch array thingy.
+ */
+function ten_million_with_a_hat_ingest_batch($objects = 10) {
+  global $user;
+  return array(
+    'title' => t('Ten Million With A Hat Batch Ingest'),
+    'init_message' => ("Preparing to ingest $objects objects ..."),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
+    'error_message' => t('An error has occured.'),
+    'file' => drupal_get_path('module', 'ten_million_with_a_hat') . '/ten_million_with_a_hat.module',
+    'operations' => array(
+      array('ten_million_with_a_hat_ingest_batch_operation', array($objects, $user)),
+    ),
+  );
+}
+
+/**
+ * Processes the thing with the stuff.
+ *
+ * @param int $objects
+ *   The number of objects we're creating.
+ * @param stdClass $user
+ *   The logged in user.
+ * @param array $context
+ *   The batch context.
+ */
+function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$context) {
+  $sandbox = &$context['sandbox'];
+  if (empty($sandbox)) {
+    $context['finished'] = 0;
+    $sandbox['completed'] = 0;
+    $sandbox['total'] = $objects;
+    $sandbox['collections'] = ten_million_with_a_hat_get_collection_pid_array();
+  }
+  $collection = islandora_object_load(ten_million_with_a_hat_get_random_collection($sandbox['collections']));
+  // If this collection has no policy, it gets the boot.
+  if (!isset($collection['COLLECTION_POLICY'])) {
+    unset($sandbox['collections'][$collection->id]);
+  }
+  else {
+    $model = ten_million_with_a_hat_get_random_content_model($collection->id);
+    // If we encountered an issue loading the COLLECTION_POLICY for this module
+    // then it gets the boot as well.
+    if (!model) {
+      unset($sandbox['collections'][$collection->id]);
+    }
+    else {
+      // Let's make an object wheeeee.
+      $tuque = islandora_get_tuque_connection();
+      $object = $tuque->repository->constructObject('islandora');
+      $object->label = DrupalTestCase::randomName();
+      $object->owner = $user->name;
+      $object->models = (array) $model;
+      $tuque->repository->ingestObject($object);
+      $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
+    }
+  }
+  $sandbox['completed']++;
+  // Messages based on how things went.
+  if ($object) {
+    $context['message'] = "Ingested {$object->id} ({$sandbox['completed']} out of {$sandbox['total']})";
+  }
+  else {
+    $context['message'] = "Something went wrong loading the collection policy for {$collection->label} ({$collection->id}), so the collection has been removed from the randomizer.";
+  }
+  // Handle the case where your repository is so messed up that there are no
+  // collections or policies.
+  if (empty($sandbox['collections'])) {
+    $context['finished'] = 1;
+  }
+  else {
+    $context['finished'] = $sandbox['completed'] / $sandbox['total'];
+  }
+}
+
+/**
+ * Raaaaandom collections!
+ *
+ * @param array $collections
+ *   The return value of ten_million_with_a_hat_get_collection_pid_array().
+ * @return AbstractObject|bool
+ *   A loaded collection, or FALSE on failure.
+ */
+function ten_million_with_a_hat_get_random_collection($collections) {
+  $collections = array_keys($collections);
+  return $collections[mt_rand(0, count($collections) - 1)];
+}
+
+/**
+ * Returns the list of existing collections as PIDs.
+ *
+ * @return array
+ *   The PID array.
+ */
+function ten_million_with_a_hat_get_collection_pid_array() {
+  $collections = islandora_basic_collection_get_collections();
+  $pids = array();
+  foreach ($collections as $collection) {
+    $pids[$collection['pid']] = array();
+    $models = ten_million_with_a_hat_get_content_models(islandora_object_load($collection['pid']));
+    if ($models) {
+      $pids[$collection['pid']] = $models;
+      // We don't want to be creating new collections, so get rid of this.
+      if (isset($pids[$collection['pid']]['islandora:collectionCModel'])) {
+        unset($pids[$collection['pid']]['islandora:collectionCModel']);
+      }
+    }
+    else {
+      unset($pids[$collection['pid']]);
+    }
+  }
+  return $pids;
+}
+
+/**
+ * Gets a random content model from the collection policy.
+ *
+ * @param AbstractObject $collection
+ *   The collection to get the policy from.
+ * @return string|bool
+ *   A random content model PID, or FALSE on failure.
+ */
+function ten_million_with_a_hat_get_random_content_model(AbstractObject $collection) {
+  try {
+    $policy = new CollectionPolicy($collection['COLLECTION_POLICY']->content);
+  }
+  catch (Exception $e) {
+    return FALSE;
+  }
+  $models = array_keys($policy->getContentModels());
+  return $models[mt_rand(0, count($models) - 1)];
+}
