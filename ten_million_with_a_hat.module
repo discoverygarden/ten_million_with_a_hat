@@ -109,16 +109,22 @@ function ten_million_with_a_hat_get_collection_pid_array() {
   $pids = array();
   foreach ($collections as $collection) {
     $pids[$collection['pid']] = array();
-    $models = ten_million_with_a_hat_get_content_models(islandora_object_load($collection['pid']));
-    if ($models) {
-      $pids[$collection['pid']] = $models;
-      // We don't want to be creating new collections, so get rid of this.
-      if (isset($pids[$collection['pid']]['islandora:collectionCModel'])) {
-        unset($pids[$collection['pid']]['islandora:collectionCModel']);
-      }
+    $loaded_collection = islandora_object_load($collection['pid'];
+    if (!isset($loaded_collection['COLLECTION_POLICY'])) {
+      unset($pids[$collection['pid']]);
     }
     else {
-      unset($pids[$collection['pid']]);
+      $models = ten_million_with_a_hat_get_content_models(islandora_object_load($collection['pid']));
+      if ($models) {
+        $pids[$collection['pid']] = $models;
+        // We don't want to be creating new collections, so get rid of this.
+        if (isset($pids[$collection['pid']]['islandora:collectionCModel'])) {
+          unset($pids[$collection['pid']]['islandora:collectionCModel']);
+        }
+      }
+      else {
+        unset($pids[$collection['pid']]);
+      }
     }
   }
   return $pids;
