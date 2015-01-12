@@ -2,7 +2,7 @@
 
 /**
  * @file
- * To be a drush script.
+ * Droosh.
  */
 
 /**
