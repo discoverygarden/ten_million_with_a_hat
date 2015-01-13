@@ -38,6 +38,6 @@ function drush_ten_million_with_a_hat_ingest() {
   if (strtolower($thumbnails) === 'true') {
     $thumbnails = TRUE;
   }
-  batch_set(ten_million_with_a_hat_ingest_batch(drush_get_option('objects'), $thumbnails);
+  batch_set(ten_million_with_a_hat_ingest_batch(drush_get_option('objects'), $thumbnails));
   drush_backend_batch_process();
 }
