@@ -10,10 +10,12 @@
  *
  * @param int $objects
  *   How many things we wanna do stuff with.
+ * @param bool $thumbnails
+ *   Whether or not we want thumbnails. FALSE by default.
  * @return array
  *   The batch array thingy.
  */
-function ten_million_with_a_hat_ingest_batch($objects = 10) {
+function ten_million_with_a_hat_ingest_batch($objects, $thumbnails = FALSE) {
   global $user;
   return array(
     'title' => t('Ten Million With A Hat Batch Ingest'),
@@ -34,10 +36,12 @@ function ten_million_with_a_hat_ingest_batch($objects = 10) {
  *   The number of objects we're creating.
  * @param stdClass $user
  *   The logged in user.
+ * @param bool $thumbnails
+ *   Whether or not we are generating thumbnails.
  * @param array $context
  *   The batch context.
  */
-function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$context) {
+function ten_million_with_a_hat_ingest_batch_operation($objects, $user, $thumbnails, &$context) {
   $sandbox = &$context['sandbox'];
   if (empty($sandbox)) {
     $context['finished'] = 0;
@@ -54,6 +58,12 @@ function ten_million_with_a_hat_ingest_batch_operation($objects, $user, &$contex
     $object->label = DrupalTestCase::randomName();
     $object->owner = $user->name;
     $object->models = (array) $model;
+    // Add the thumbnail if we're supposed to.
+    if ($thumbnails) {
+      $thumbnail = $object->constructDatastream('TN');
+      $thumbnail->setContentFromFile(drupal_get_path('module', 'islandora') . '/images/folder.png');
+      $object->ingestDatastream($thumbnail);
+    }
     $tuque->repository->ingestObject($object);
     $object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
     $sandbox['completed']++;

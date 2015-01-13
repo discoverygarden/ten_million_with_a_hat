@@ -24,12 +24,20 @@ function ten_million_with_a_hat_drush_command() {
           'description' => dt('The number of objects to create.'),
           'required' => TRUE,
         ),
+        'thumbnails' => array(
+          'description' => dt('Whether to generate thumbnails (true/false; defaults to false).'),
+          'required' => FALSE,
+        ),
       ),
     ),
   );
 }
 
 function drush_ten_million_with_a_hat_ingest() {
-  batch_set(ten_million_with_a_hat_ingest_batch(drush_get_option('objects')));
+  $thumbnails = drush_get_option('thumbnails', FALSE);
+  if (strtolower($thumbnails) === 'true') {
+    $thumbnails = TRUE;
+  }
+  batch_set(ten_million_with_a_hat_ingest_batch(drush_get_option('objects'), $thumbnails);
   drush_backend_batch_process();
 }
